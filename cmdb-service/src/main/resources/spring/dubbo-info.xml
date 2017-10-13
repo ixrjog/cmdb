@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd     http://code.alibabatech.com/schema/dubbo http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+
+    <!-- 提供方应用信息，用于计算依赖关系 -->
+    <dubbo:application name="cmdbApplication"/>
+    <!-- 注册中心暴露服务地址 -->
+    <dubbo:registry id="online" protocol="zookeeper" address="${dubbo_zk_address}|${dubbo_zk_address_gray}" file="${dubbo_cache}" check="false"/>
+    <!--<dubbo:registry id="online" protocol="zookeeper" address="${dubbo_zk_address}" file="${dubbo_cache}" check="false"/>-->
+
+    <dubbo:protocol port="${dubbo_port}"/>
+
+    <dubbo:service ref="cmdbService" interface="com.sdg.cmdb.api.CmdbService"/>
+
+    <dubbo:reference id="empQueryService" interface="com.shandiangou.org.service.EmpQueryService" check="false"/>
+</beans>

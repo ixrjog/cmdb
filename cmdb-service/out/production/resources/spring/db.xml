@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="stat-filter" class="com.alibaba.druid.filter.stat.StatFilter">
+        <property name="slowSqlMillis" value="2000"/>
+        <property name="logSlowSql" value="true"/>
+        <property name="mergeSql" value="true"/>
+    </bean>
+
+    <bean name="dataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+        <property name="url" value="${jdbc_url}" />
+        <property name="username" value="${jdbc_user}" />
+        <property name="password" value="${jdbc_password}" />
+        <property name="testOnBorrow" value="true" />
+        <property name="validationQuery" value="select 1" />
+        <property name="defaultAutoCommit" value="false" />
+        <property name="maxActive" value="100" />
+
+        <!-- 合并统计多个数据源 -->
+        <property name="useGlobalDataSourceStat" value="true" />
+
+        <!--&lt;!&ndash; 配置监控统计拦截的filters &ndash;&gt;-->
+        <!--<property name="filters" value="stat" />-->
+        <!--<property name="proxyFilters">-->
+            <!--<list>-->
+                <!--<ref bean="stat-filter"/>-->
+            <!--</list>-->
+        <!--</property>-->
+    </bean>
+
+    <bean id="transactionManager"
+          class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+
+    <bean id="transactionTemplate"
+          class="org.springframework.transaction.support.TransactionTemplate">
+        <property name="transactionManager" ref="transactionManager" />
+    </bean>
+
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource" />
+        <property name="mapperLocations" value="classpath:sql/*.xml" />
+        <property name="typeAliasesPackage" value="com.sdg.cmdb.domain"/>
+    </bean>
+
+    <!--
+    <bean class="com.sdg.cmdb.Test">
+        <property name="mapperLocations" value="sql/" />
+    </bean>
+    -->
+
+    <bean id="mapperScanner" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+        <property name="basePackage" value="com.sdg.cmdb.dao" />
+    </bean>
+</beans>

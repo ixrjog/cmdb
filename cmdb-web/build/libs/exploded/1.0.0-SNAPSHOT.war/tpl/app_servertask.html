@@ -1,0 +1,193 @@
+<div class="hbox hbox-auto-xs hbox-auto-sm" ng-init="
+    app.settings.asideFolded = false;
+    app.settings.asideDock = false;
+  ">
+    <!-- main -->
+    <div class="col">
+        <!-- main header -->
+        <div class="bg-light lter b-b wrapper-md">
+            <div class="row">
+                <div class="col-sm-6 col-xs-12">
+                    <h1 class="m-n font-thin h3 text-black">服务器常用任务</h1>
+                    <small class="text-muted">服务器任务详情</small>
+                </div>
+            </div>
+        </div>
+        <!-- / main header -->
+        <div class="wrapper-md">
+            <!-- toaster directive -->
+            <toaster-container toaster-options="{'position-class': 'toast-top-right', 'close-button':true}"></toaster-container>
+            <!-- / toaster directive -->
+
+            <uib-tabset>
+                <uib-tab index="0" heading="服务器">
+                    <div class="panel panel-default" ng-controller="servertaskCtrl">
+                        <div class="panel-body">
+                            <form class="form-inline" role="form">
+                                <div class="form-group">
+                                    <div class="input-group">
+                                        <span class="input-group-addon">名称</span>
+                                        <input type="text" class="form-control" ng-model="queryName" placeholder="名称">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="input-group">
+                                        <span class="input-group-addon">IP</span>
+                                        <input type="text" class="form-control" ng-model="queryIp" placeholder="IP">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="input-group">
+                                        <span class="input-group-addon">服务器组</span>
+                                        <ui-select ng-model="nowServerGroup.selected" theme="bootstrap">
+                                            <ui-select-match placeholder="搜索服务器组名称......">{{$select.selected.name}}</ui-select-match>
+                                            <ui-select-choices refresh="queryServerGroup($select.search)" refresh-dalay="0" repeat="item in serverGroupList | filter: $select.search">
+                                                <div ng-bind-html="item.name | highlight: $select.search"></div>
+                                            </ui-select-choices>
+                                        </ui-select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="input-group">
+                                        <span class="input-group-addon">使用类型</span>
+                                        <select class="form-control" ng-model="nowUseType" ng-options="type.code as type.name for type in userType">
+                                            <option value="">--请选择--</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="input-group">
+                                        <span class="input-group-addon">环境类型</span>
+                                        <select class="form-control" ng-model="nowEnv" ng-options="envItem.code as envItem.name for envItem in envType" required>
+                                            <option value="">--请选择--</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <button type="button" class="btn btn-info" ng-click="doQuery()"><span class="glyphicon glyphicon-search"></span>搜索</button>
+                                    <button type="button" class="btn btn-info" ng-click="reSet()"><span class="glyphicon glyphicon-repeat"></span>重置</button>
+                                    <button type="button" class="btn btn-success" ng-click="addServer()" ng-if="contains(authPoint, '/server/save')"><span class="glyphicon glyphicon-plus"></span>新增</button>
+                                </div>
+                            </form>
+
+                            <div class="panel panel-default" style="margin-top: 5px;;">
+                                <div class="panel-body">
+                                    <div>
+                                        <table class="table table-hover table-bordered table-striped">
+                                            <thead>
+                                            <tr>
+                                                <td>服务器组</td>
+                                                <td>服务器</td>
+                                                <td>公网IP</td>
+                                                <td>内网IP</td>
+                                                <td>使用类型</td>
+                                                <td>环境</td>
+                                                <td>序列号</td>
+                                                <td>创建时间</td>
+                                                <td ng-if="contains(authPoint, '/task/servertask/save')">操作</td>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr ng-repeat="item in pageData">
+                                                <td ng-if="item.detail != null" colspan="9">
+                                                    <div class="padder">
+                                                        <div class="streamline b-l b-info m-l-lg m-b padder-v">
+                                                            <div ng-repeat="logItem in item.dailyLogDOList">
+                                                                <a class="pull-left thumb-sm avatar m-l-n-md">
+                                                                    <img src="img/a9.jpg" class="img-circle" alt="...">
+                                                                </a>
+                                                                <div class="m-l-lg">
+                                                                    <div class="m-b-xs">
+                                                                        <a href class="h4">
+                                                                            <span ng-if="logItem.todoStatus == 0">发起人:</span>
+                                                                            <span ng-if="logItem.todoStatus != 0">处理人:</span>
+                                                                            {{logItem.processUser}}
+                                                                        </a>
+                                                                            <span class="text-muted m-l-sm pull-right">
+                                                                                {{logItem.gmtCreate}}
+                                                                            </span>
+                                                                    </div>
+                                                                    <div class="m-b" style="word-wrap: break-word; word-break: break-all;">
+                                                                        <div ng-if="logItem.todoStatus == 0">{{logItem.dailyContent}}</div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td ng-if="item.detail == null">{{item.serverGroupDO.name}}</td>
+                                                <td ng-if="item.detail == null">{{item.serverName}}</td>
+                                                <td ng-if="item.detail == null">{{item.publicIP.ip}}</td>
+                                                <td ng-if="item.detail == null">{{item.insideIP.ip}}</td>
+                                                <td ng-if="item.detail == null">
+                                                    <span class="label label-default" ng-if="item.useType == 10">bi</span>
+                                                    <span class="label label-default" ng-if="item.useType == 1">zookeeper</span>
+                                                    <span class="label label-danger" ng-if="item.useType == 2">web-service</span>
+                                                    <span class="label label-warning" ng-if="item.useType == 3">mysql</span>
+                                                    <span class="label label-primary" ng-if="item.useType == 4">other</span>
+                                                    <span class="label label-info" ng-if="item.useType == 5">web-php</span>
+                                                    <span class="label label-primary" ng-if="item.useType == 6">public</span>
+                                                    <span class="label label-warning" ng-if="item.useType == 7">redis</span>
+                                                    <span class="label label-info" ng-if="item.useType == 8">web-server</span>
+                                                    <span class="label label-info" ng-if="item.useType == 9">front-end</span>
+                                                </td>
+                                                <td ng-if="item.detail == null">
+                                                    <span class="label label-default" ng-if="item.envType == 0">保留</span>
+                                                    <span class="label label-info" ng-if="item.envType == 1">dev</span>
+                                                    <span class="label label-success" ng-if="item.envType == 2">daily</span>
+                                                    <span class="label label-warning" ng-if="item.envType == 3">gray</span>
+                                                    <span class="label label-danger" ng-if="item.envType == 4">prod</span>
+                                                    <span class="label label-primary" ng-if="item.envType == 5">test</span>
+                                                    <span class="label label-primary" ng-if="item.envType == 6">back</span>
+                                                </td>
+                                                <td ng-if="item.detail == null">{{item.serialNumber}}</td>
+                                                <td ng-if="item.detail == null">{{(item.gmtModify == null || item.gmtModify == '') ? item.gmtCreate : item.gmtModify}}</td>
+                                                <td ng-if="item.detail == null && contains(authPoint, '/task/servertask/save')">
+                                                    <button type="button" class="btn btn-info btn-xs pull-right" ng-click="lookDetail($index, item)">任务</button>
+                                                    <div class="btn-group" uib-dropdown is-open="status.isopen">
+                                                        <button id="single-button" type="button" class="btn btn-info btn-xs" uib-dropdown-toggle ng-disabled="disabled">
+                                                            <span class="glyphicon glyphicon-th-list"></span>task<span class="caret"></span>
+                                                        </button>
+                                                        <ul class="dropdown-menu" uib-dropdown-menu role="menu" aria-labelledby="single-button">
+                                                            <li role="menuitem"></li><a ng-click="initializationSystem(item)"><span class="glyphicon glyphicon-wrench"></span> Initialization System</a></li>
+                                                            <li role="menuitem"></li><a ng-click="serverOffline(item)"><span class="glyphicon glyphicon-wrench"></span> Server offline</a></li>
+                                                            <li role="menuitem"></li><a ng-click="updateTomcat(item)"><span class="glyphicon glyphicon-wrench"></span> Update Tomcat Version</a></li>
+                                                            <li class="divider"></li>
+                                                            <li role="menuitem"><a href="#">重启zabbix(agentd)</a></li>
+                                                            <li role="menuitem"><a href="#">重启tomcat</a></li>
+                                                            <li role="menuitem"><a href="#">关闭tomcat</a></li>
+                                                            <li role="menuitem"><a href="#">启动tomcat</a></li>
+                                                        </ul>
+                                                    </div>
+
+
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                            <tfoot>
+                                            <tr>
+                                                <td colspan="9">
+                                                    <ul style="margin: 0px; float: right;" uib-pagination total-items="totalItems" ng-model="currentPage" items-per-page="pageLength" max-size="10" ng-change="pageChanged()" previous-text="&lsaquo;" next-text="&rsaquo;"></ul>
+                                                </td>
+                                            </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </uib-tab>
+            </uib-tabset>
+        </div>
+    </div>
+    <!-- / main -->
+</div>
+
+<script type="text/ng-template" id="serverInfo">
+    <div ng-include="'tpl/modal/server_info_modal.html'"></div>
+</script>
+
+<script type="text/ng-template" id="serverpsInfo">
+    <div ng-include="'tpl/modal/serverpg_modal.html'"></div>
+</script>
