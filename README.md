@@ -7,7 +7,7 @@ Welcome to the cmdb wiki!
 * Centos 6.x
 * JDK 8
 * Tomcat 8
-* Gradel 3
+* Gradle 3
 * Mysql5.6 或 aliyunRDS
 * Redis 3.0.3
 * LDAP : apacheDS(http://directory.apache.org)
